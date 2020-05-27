@@ -16,11 +16,31 @@ import axios from 'axios'
 export default {
   data () {
     return {
+      form: {
+        email: '',
+        name: '',
+        food: null,
+        checked: []
+      },
       username: '',
-      password: ''
+      password: '',
+      addUserForm: {
+        username: '',
+        password: ''
+      }
     }
   },
   methods: {
+    initForm () {
+      this.addUserForm.username = ''
+      this.addUserForm.password = ''
+    },
+    created () {
+      this.logged = this.$route.query.logged
+      this.username = this.$route.query.username
+      this.is_admin = this.$route.query.is_admin
+      this.token = this.$route.query.token
+    },
     checkLogin () {
       const parameters = {
         username: this.username,
