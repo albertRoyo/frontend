@@ -1,35 +1,43 @@
 <template>
   <div id="app">
-    <div class="container">
-      <div class="row">
-        <div class="col-lg-4 col-md-6 mb-4" v-for="(event) in events" :key="event.id">
-          <br>
-          <div class="card" style="width: 18rem;">
-            <div class="card-body">
-              <img class="card-img-top" src="event.image" alt="Card image cap">
-              <h5 class="card-title">{{event.name}}</h5>
-              <p class="card-text">{{event.city}}</p>
-              <p class="card-text">{{event.place}}</p>
-              <p class="card-text">{{event.date}}</p>
-              <p class="card-text">{{event.price}} €</p>
-              <a href="#" class="btn btn-primary" @click="add_event_to_cart(event)">Add to cart</a>
+    <template v-if="!show_cart">
+      <button class="btn btn-success btn-lg" @click="showCart"> Cart </button>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-4 col-md-6 mb-4" v-for="(event) in events" :key="event.id">
+            <br>
+            <div class="card" style="width: 18rem;">
+              <div class="card-body">
+                <img class="card-img-top" src="event.image" alt="Card image cap">
+                <h5 class="card-title">{{event.name}}</h5>
+                <p class="card-text">{{event.city}}</p>
+                <p class="card-text">{{event.place}}</p>
+                <p class="card-text">{{event.date}}</p>
+                <p class="card-text">{{event.price}} €</p>
+                <button class="btn btn-success btn-lg" @click="addEventToCart(event)">Add to cart</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-    // S'ha de separar el llistat de events i el carret amb un condicional...
-    <thead>
+    </template>
+    <thead v-if="show_cart">
       <tr>
         <th>Event Name</th>
         <th>Quantity</th>
         <th>Price(€)</th>
         <th>Total</th>
       </tr>
-      <tr v-for="(event) in getEvents()" :key="event.id">
-        <td v-text="event.name"></td>
-        <td v-text="event.name"></td>
+      <tr v-for="(event) in events_added" v-if="quantity[event.id]>0" :key="event.id">
+        <td v-text="event.name"> </td>
+        <td v-text="quantity[event.id]"></td>
+        <a href="#" class="btn btn-primary" :disabled="quantity[event.id]<1" @click="decQuant(event.id)">-</a>
+        <a href="#" class="btn btn-primary" @click="incQuant(event.id)">+</a>
+        <td v-text="event.price"> </td>
+        <td v-text="event.price*quantity[event.id]"> </td>
       </tr>
+      <button class="btn btn-success btn-lg" @click="closeCart">Back</button>
+      <button class="btn btn-success btn-lg" @click="finalizePurchase">Finalize purchase</button>
     </thead>
   </div>
 </template>
@@ -82,12 +90,40 @@ export default {
           image: 'images/iron_maiden.jpg'
         }
       ],
-      events_added: []
+      events_added: [],
+      quantity: [0, 0, 0],
+      show_cart: false
     }
   },
   methods: {
     addEventToCart (event) {
-      this.events_added.push(event)
+      if (this.quantity[event.id] < 1) {
+        this.events_added.push(event)
+      }
+      this.quantity[event.id]++
+    },
+    decQuant (id) {
+      if (this.quantity[id] > 0) {
+        this.quantity[id] -= 1
+      }
+    },
+    incQuant (id) {
+      this.quantity[id] += 1
+    },
+    showCart () {
+      this.show_cart = true
+    },
+    closeCart () {
+      this.show_cart = false
+    },
+    finalizePurchase () {
+      for (let i = 0; i < this.events_added.items.length; i += 1) {
+        const parameters = {
+          event_id: this.events_added.items[i].event.id,
+          tickets_bought: this.events_added.items[i].quantity
+        }
+        this.addPurchase(parameters)
+      }
     },
     getEvents () {
       const path = 'http://localhost:5000/events'
