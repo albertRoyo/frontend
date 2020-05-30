@@ -11,7 +11,7 @@ export default new Router({
   routes: [
     {
       path: '/',
-      name: 'Events',
+      name: 'login',
       component: Events
     },
     {
