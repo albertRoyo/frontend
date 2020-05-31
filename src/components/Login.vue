@@ -48,6 +48,7 @@ export default {
       username: '',
       password: '',
       is_admin: false,
+      token: '',
       logged: false,
       create_account: false,
       addUserForm: {
@@ -74,7 +75,7 @@ export default {
           this.find_match = true
           this.getAccount()
           alert('Logged in as ' + this.username)
-          this.$router.replace({ path: '/', query: { username: this.username, logged: this.logged } })
+          this.$router.replace({ path: '/', query: { username: this.username, logged: this.logged, is_admin: this.is_admin, token: this.token } })
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -93,19 +94,22 @@ export default {
     onSumit () {
       const parameters = {
         username: this.addUserForm.username,
-        password: this.addUserForm.password
+        password: this.addUserForm.password,
+        is_admin: 0,
+        available_money: 500
       }
-      const path = `http://localhost:5000/account`
+      const path = `http://localhost:5000/account/`
       axios.post(path + parameters.username, parameters)
         .then((res) => {
-          this.token = res.data.token
           alert('Account created!')
+          this.logged = false
+          this.$router.replace({ path: '/' })
         })
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error)
           this.username = ''
-          alert('Username already exists')
+          alert('Username ' + parameters.username + ' already exists')
         })
     },
     backToEvents () {

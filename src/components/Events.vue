@@ -34,15 +34,15 @@
             <b-dropdown-divider></b-dropdown-divider>
             <b-dropdown-item>Money available: {{ avaliable_money }}</b-dropdown-item>
           </b-dropdown>
-          <button class="btn btn-outline-light" @click="show_cart = true"> Cart 🛒</button>
+          <button class="btn btn-outline-light" @click="showCart"> Cart 🛒</button>
           <button class="btn btn-outline-light" @click="logout"> Logout </button>
         </div>
         <div v-else>
           <button class="btn btn-outline-light" @click="login"> Login </button>
         </div>
       </b-btn-group>
-    </nav><br>
-    <div v-if="show_cart">
+    </nav><br><br>
+    <template v-if="show_cart">
       <thead>
         <tr>
           <th>Event Name</th>
@@ -50,22 +50,59 @@
           <th>Price(€)</th>
           <th>Total</th>
         </tr>
-        <tr v-for="(event_id, tickets_bought) in events_added" :key="event_id">
-          <td> {{getEvent(event_id).name}} </td>
+        <tr v-for="(event) in events_added" :key="event.event_id" v-onfocus="updateEventActual(event.event_id) ">
+          <td>{{ event_actual.name }}</td>
           <td>
-            {{tickets_bought}}
-            <button class="btn b-icon btn-sm" @click="decQuant(getEvent(event_id))">-</button>
-            <button class="btn b-icon btn-sm" @click="incQuant(getEvent(event_id))">+</button>
+            {{event.tickets_bought}}
+            <button class="btn b-icon btn-sm" @click="decQuant(getEvent(event.event_id))">-</button>
+            <button class="btn b-icon btn-sm" @click="incQuant(getEvent(event.event_id))">+</button>
           </td>
-          <td style="text-align: end"> {{getEvent(event_id).price}} </td>
-          <td style="text-align: end"> {{getEvent(event_id).price*tickets_bought}} </td>
-          <button class="btn btn-success"  @click="deleteQuant(getEvent(event_id))">Delete ticket</button>
+          <td>{{ event_actual.price }}</td>
+          <td>{{ event_actual.price*event.tickets_bought}}</td>
+          <button class="btn btn-success"  @click="deleteQuant(getEvent(event.event_id))">Delete ticket</button>
         </tr>
-        <button class="btn btn-success btn-lg" @click="show_cart=false">Back</button>
+        <button class="btn btn-success btn-lg" @click="showCart">Back</button>
         <button class="btn btn-success btn-lg" @click="finalizePurchase">Finalize purchase</button>
       </thead>
-    </div>
+    </template>
+    <template v-else-if="add_new_event">
+      <b-card style="width:250px; margin:auto">
+        <h3> Add new event</h3>
+        <button class="btn btn-outline-dark btn-sm" style="margin-block-end: 10px; position:absolute;top:0;right:0;" @click="add_new_event=false">x</button>
+        <div class="form-label-group">
+          <label for="inputName" style="margin-left: fill">Name:</label>
+          <input type="username" id="inputName" placeholder="Enter event name" required autofocus v-model="addEventForm.name">
+        </div>
+        <div class="form-label-group">
+          <label for="inputPrice">Price:</label><br>
+          <input type="username" id="inputPrice" placeholder="Enter price" required autofocus v-model="addEventForm.price">
+        </div>
+        <div class="form-label-group">
+          <label for="inputDate">Date:</label><br>
+          <input type="username" id="inputDate" placeholder="Enter date" required autofocus v-model="addEventForm.date">
+        </div>
+        <div class="form-label-group">
+          <label for="inputCity">City:</label><br>
+          <input type="username" id="inputCity" placeholder="Enter city" required autofocus v-model="addEventForm.city">
+        </div>
+        <div class="form-label-group">
+          <label for="inputPlace">Place:</label><br>
+          <input type="username" id="inputPlace" placeholder="Enter place" required autofocus v-model="addEventForm.place">
+        </div>
+        <div class="form-label-group">
+          <label for="inputTickets">Tickets:</label><br>
+          <input type="username" id="inputTickets" placeholder="Enter ticket" required autofocus v-model="addEventForm.ticket">
+        </div>
+        <br>
+        <button class="btn btn-primary"  @click="onSumit">Submit</button>
+        <button class="btn btn-danger"   @click="resetParam">Reset</button>
+      </b-card>
+    </template>
     <template v-else>
+      <div v-if="logged">
+        <button class="btn btn-dark" @click="showAddEvent"> Add new event </button><br><br>
+        <button class="btn btn-outline-dark" @click="showModifyEvent"> Modify event </button><br><br>
+      </div>
       <div class="container">
         <div class="row">
           <div class="col-lg-4 col-md-6 mb-4" v-for="(event) in events" :key="event.id">
@@ -108,7 +145,6 @@ export default {
           place: 'Parc del Fòrum',
           date: '2020-07-03',
           price: 100,
-          tickets_bought: 0,
           image: 'https://www.elperfildelatostada.com/wp-content/uploads/2019/07/cruilla-portada-750x400.jpg',
           total_available_tickets: 100
         },
@@ -124,7 +160,6 @@ export default {
           place: 'Parc del Fòrum',
           date: '2020-07-05',
           price: 24,
-          tickets_bought: 0,
           image: 'https://www.rac105.cat/assets/uploads/2020/02/canet-rock-2020-1570707429.48.2560x1440-1.jpg',
           total_available_tickets: 500
         },
@@ -138,7 +173,6 @@ export default {
           place: 'Sant Jordi',
           date: '2020-08-22',
           price: 70,
-          tickets_bought: 0,
           image: 'https://indiehoy.com/wp-content/uploads/2018/11/iron-maiden.jpg',
           total_available_tickets: 1000
         },
@@ -154,17 +188,28 @@ export default {
             {name: 'David Guetta'}
           ],
           price: 20,
-          tickets_bought: 0,
           image: 'https://tomorrowlandlatino.com/wp-content/uploads/2019/12/Tomorrowland-Renueva-Contrato-2034-696x392.jpg.webp',
           total_available_tickets: 2500
         }
       ],
       events_added: [],
+      event_actual: {},
       total_tickets: 0,
       avaliable_money: 0,
       show_cart: false,
-      logged: true,
-      username: ''
+      add_new_event: false,
+      username: '',
+      logged: false,
+      is_admin: false,
+      token: '',
+      addEventForm: {
+        place: '',
+        name: '',
+        city: '',
+        date: '',
+        price: '',
+        total_available_tickets: ''
+      }
     }
   },
   methods: {
@@ -176,6 +221,13 @@ export default {
       }
       return this.total_tickets
     },
+    updateEventActual (id) {
+      for (let i = 0; i < this.events.length; i++) {
+        if (this.events[i].id === id) {
+          this.event_actual = this.events[i]
+        }
+      }
+    },
     // Visualitzar loging
     login () {
       this.$router.replace({ path: '/userlogin' })
@@ -184,33 +236,19 @@ export default {
       this.$router.replace({ path: '/' })
       this.logged = false
     },
-    // Obre carret
-    showCart () {
-      this.show_cart = true
-    },
-    // Tanca carret
-    closeCart () {
-      this.show_cart = false
-    },
     // Retorna l'event amb l'id passat com a paramentre
     getEvent (id) {
-      for (let i = 0; i < this.events_added.length; i++) {
-        if (this.events[i].event_id === id) {
+      for (let i = 0; i < this.events.length; i++) {
+        if (this.events[i].id === id) {
           return this.events[i]
         }
       }
     },
-    // Incrementa el nombre de tickets per l'event.
-    decQuant (event) {
-      for (let i = 0; i < this.events_added.length; i++) {
-        if (this.events_added[i].event_id === event.id) {
-          if (this.events_added[i].tickets_bought > 1) {
-            this.events_added[i].tickets_bought -= 1
-          } else {
-            this.events_added.splice(i, 1)
-          }
-        }
-      }
+    showCart () {
+      this.show_cart = this.show_cart === false
+    },
+    showAddEvent () {
+      this.add_new_event = this.add_new_event === false
     },
     // Decremena el nombre de tickets per l'event. Si aquest resulta 0, elimina l'event de events_added
     incQuant (event) {
@@ -226,31 +264,42 @@ export default {
         this.events_added.push(order)
       }
     },
-    // Elimina l'event de events_added.
-    deleteQuant (event) {
+    // Incrementa el nombre de tickets per l'event.
+    decQuant (event) {
       for (let i = 0; i < this.events_added.length; i++) {
         if (this.events_added[i].event_id === event.id) {
           if (this.events_added[i].tickets_bought > 1) {
+            this.events_added[i].tickets_bought -= 1
+          } else {
             this.events_added.splice(i, 1)
           }
         }
       }
     },
+    // Elimina l'event de events_added.
+    deleteQuant (event) {
+      for (let i = 0; i < this.events_added.length; i++) {
+        if (this.events_added[i].event_id === event.id) {
+          this.events_added.splice(i, 1)
+        }
+      }
+    },
     // Per cada ordre, cridem el metode addPurchase
     finalizePurchase () {
-      for (let i = 0; i < this.events_added.items.length; i += 1) {
+      for (let i = 0; i < this.events_added.length; i++) {
         const parameters = {
-          event_id: this.events_added.items[i].id,
-          tickets_bought: this.events_added.items[i].tickets_bought
+          event_id: this.events_added[i].id,
+          tickets_bought: this.events_added[i].tickets_bought
         }
         this.addPurchase(parameters)
       }
-      this.events_added = []
+      // Buidem llista
+      while (this.events_added.length > 0) { this.events_added.pop() }
     },
     // POST order
     addPurchase (parameters) {
-      const path = `http://localhost:5000/order/${this.username}`
-      axios.post(path, parameters, {
+      const path = 'http://localhost:5000/order/'
+      axios.post(path + parameters.username, parameters, {
         auth: {username: this.token}
       })
         .then(() => {
@@ -259,7 +308,33 @@ export default {
         .catch((error) => {
           // eslint-disable-next-line
           console.log(error)
-          this.getEvents()
+        })
+    },
+    onSumit (evt) {
+      evt.preventDefault()
+      this.$refs.addEventModal.hide()
+      const parameters = {
+        place: this.addEventForm.place,
+        name: this.addEventForm.name,
+        city: this.addEventForm.city,
+        date: this.addEventForm.date,
+        price: this.addEventForm.price,
+        total_available_tickets: this.addEventForm.total_available_tickets
+      }
+      this.addEvent(parameters)
+      this.initForm()
+    },
+    addEvent (parameters) {
+      const path = 'http://localhost:5000/event'
+      axios.post(path, parameters, {
+        auth: {username: this.token}
+      })
+        .then(() => {
+          console.log('Event Aded')
+        })
+        .catch((error) => {
+          // eslint-disable-next-line
+          console.log(error)
         })
     },
     // GET events
@@ -274,9 +349,11 @@ export default {
         })
     },
     created () {
-      this.getEvents()
-      this.logged = this.$route.query.logged
+      this.events = []
       this.username = this.$route.query.username
+      this.logged = this.$route.query.logged
+      this.is_admin = this.$route.query.is_admin
+      this.token = this.$route.query.token
     }
   }
 }
