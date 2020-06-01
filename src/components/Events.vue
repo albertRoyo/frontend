@@ -17,8 +17,9 @@
     background: #ddd;
     color: black;
   }
-  :root {
-    user: username;
+  .floated {
+    float:left;
+    margin-right:5px;
   }
 
 </style>
@@ -26,21 +27,23 @@
 <template>
   <div id="app">
     <nav class="navbar navbar-dark">
-      <h1 class="card-title" style="color: #d3d9df">FestiFinder</h1>
-      <b-btn-group style="align-content: end">
-        <div v-if="logged">
-          <b-dropdown id="dropdown-1" class="m-md-2" style="margin-right: 0">{{username}}
-            <b-dropdown-item>Tikets bought: </b-dropdown-item>
-            <b-dropdown-divider></b-dropdown-divider>
-            <b-dropdown-item>Money available: {{ avaliable_money }}</b-dropdown-item>
-          </b-dropdown>
-          <button class="btn btn-outline-light" @click="showCart"> Cart 🛒</button>
-          <button class="btn btn-outline-light" @click="logout"> Logout </button>
+      <h2 style="color: #d3d9df">FestiFinder</h2>
+      <div v-if="user.logged" id="navbarLogged">
+        <div class="navbar-nav" style="position: absolute; left: 60%">
+          <div class="nav-item" style="color: white" v-bind:text="user.username"></div>
         </div>
-        <div v-else>
+        <div class="navbar-nav" style="position: absolute; left: 70%">
+          <div class ="navbar-text" style="color: white" v-bind:text= "'Tickets bought: ' + user.total_tickets"></div>
+          <div class ="nav-item" v-bind:text= "'Money available: ' + user.available_money"></div>
+        </div>
+        <button class="btn btn-outline-light floated" @click="showCart"> Cart 🛒</button>
+        <button class="btn btn-outline-light floated" @click="logout"> Logout </button>
+      </div>
+      <div v-else >
+        <div class="navbar-nav">
           <button class="btn btn-outline-light" @click="login"> Login </button>
         </div>
-      </b-btn-group>
+      </div>
     </nav><br><br>
     <template v-if="show_cart">
       <thead>
@@ -91,23 +94,56 @@
         </div>
         <div class="form-label-group">
           <label for="inputTickets">Tickets:</label><br>
-          <input type="username" id="inputTickets" placeholder="Enter ticket" required autofocus v-model="addEventForm.ticket">
+          <input type="username" id="inputTickets" placeholder="Enter ticket" required autofocus v-model="addEventForm.total_available_tickets">
         </div>
         <br>
-        <button class="btn btn-primary"  @click="onSumit">Submit</button>
+        <button class="btn btn-primary"  @click.prevent="onSumit">Submit</button>
+        <button class="btn btn-danger"   @click="resetParam">Reset</button>
+      </b-card>
+    </template>
+    <template v-else-if="modify_new_event">
+      <b-card style="width:250px; margin:auto">
+        <h3> Add new event</h3>
+        <button class="btn btn-outline-dark btn-sm" style="margin-block-end: 10px; position:absolute;top:0;right:0;" @click="add_new_event=false">x</button>
+        <div class="form-label-group">
+          <label for="inputName" style="margin-left: fill">Name:</label>
+          <input type="username" id="inputName" placeholder="Enter event name" required autofocus v-model="addEventForm.name">
+        </div>
+        <div class="form-label-group">
+          <label for="inputPrice">Price:</label><br>
+          <input type="username" id="inputPrice" placeholder="Enter price" required autofocus v-model="addEventForm.price">
+        </div>
+        <div class="form-label-group">
+          <label for="inputDate">Date:</label><br>
+          <input type="username" id="inputDate" placeholder="Enter date" required autofocus v-model="addEventForm.date">
+        </div>
+        <div class="form-label-group">
+          <label for="inputCity">City:</label><br>
+          <input type="username" id="inputCity" placeholder="Enter city" required autofocus v-model="addEventForm.city">
+        </div>
+        <div class="form-label-group">
+          <label for="inputPlace">Place:</label><br>
+          <input type="username" id="inputPlace" placeholder="Enter place" required autofocus v-model="addEventForm.place">
+        </div>
+        <div class="form-label-group">
+          <label for="inputTickets">Tickets:</label><br>
+          <input type="username" id="inputTickets" placeholder="Enter ticket" required autofocus v-model="addEventForm.total_available_tickets">
+        </div>
+        <br>
+        <button class="btn btn-primary"  @click.prevent="onSumit">Submit</button>
         <button class="btn btn-danger"   @click="resetParam">Reset</button>
       </b-card>
     </template>
     <template v-else>
-      <div v-if="logged">
-        <button class="btn btn-dark" @click="showAddEvent"> Add new event </button><br><br>
+      <div v-if="user.logged">
+        <button class="btn btn-dark" style=" margin-bottom: 0" @click="showAddEvent"> Add new event </button><br><br>
         <button class="btn btn-outline-dark" @click="showModifyEvent"> Modify event </button><br><br>
       </div>
       <div class="container">
         <div class="row">
           <div class="col-lg-4 col-md-6 mb-4" v-for="(event) in events" :key="event.id">
             <br>
-            <div class="card" style="width: 18rem; border-radius:3%; background-color: #d3d9df">
+            <div class="card" style="width: 18rem; border-radius:3%; background-color: #9fcdff">
               <div class="card-body">
                 <img v-bind:src="event.image" height="200" width="250" alt="Card image cap">
                 <h4 class="card-title">{{event.name}}</h4>
@@ -116,7 +152,10 @@
                 <p class="card-text">{{event.date}}</p>
                 <p class="card-text">{{event.price}} €</p>
                 <p class="card-text">Tickets left: {{event.total_available_tickets}} </p>
-                <button v-if="logged" class="btn btn-success btn-lg" @click="incQuant(event)">Add to cart</button>
+                <button v-if="user.logged" class="btn btn-success" style="margin-bottom: 10px" @click="incQuant(event)">Add to cart</button><br>
+                <button v-if="user.logged" class="btn btn-secondary" style="margin-bottom: 10px" @click="showAddArtist(event)">Add artist</button><br>
+                <button v-if="user.logged" class="btn btn-secondary" style="margin-bottom: 10px" @click="showDelArtist(event)">Delete artist</button><br>
+                <button v-if="user.logged" class="btn btn-danger" style="margin-bottom: 10px" @click="deleteEvent(event)">Delete event</button><br>
               </div>
             </div>
           </div>
@@ -132,76 +171,22 @@ export default {
   data () {
     return {
       component: 'login',
-      events: [
-        {
-          id: 0,
-          name: 'Festival Cruilla 2020',
-          artists: [
-            {'name': 'Bad Gyal'},
-            {'name': 'Txarango'},
-            {'name': 'Estopa'}
-          ],
-          city: 'Barcelona',
-          place: 'Parc del Fòrum',
-          date: '2020-07-03',
-          price: 100,
-          image: 'https://www.elperfildelatostada.com/wp-content/uploads/2019/07/cruilla-portada-750x400.jpg',
-          total_available_tickets: 100
-        },
-        {
-          id: 1,
-          name: 'Canet Rock 2020',
-          artists: [
-            {'name': 'Txarango'},
-            {'name': 'Dvicio'},
-            {'name': 'Lola Indigo'}
-          ],
-          city: 'Barcelona',
-          place: 'Parc del Fòrum',
-          date: '2020-07-05',
-          price: 24,
-          image: 'https://www.rac105.cat/assets/uploads/2020/02/canet-rock-2020-1570707429.48.2560x1440-1.jpg',
-          total_available_tickets: 500
-        },
-        {
-          id: 2,
-          name: 'Iron Maiden Tour',
-          artists: [
-            {'name': 'Iron Maiden'}
-          ],
-          city: 'Barcelona',
-          place: 'Sant Jordi',
-          date: '2020-08-22',
-          price: 70,
-          image: 'https://indiehoy.com/wp-content/uploads/2018/11/iron-maiden.jpg',
-          total_available_tickets: 1000
-        },
-        {
-          id: 3,
-          name: 'Tomorrowland 2020',
-          place: 'Boom',
-          city: 'Boom',
-          date: '2020-06-03',
-          artists: [
-            {name: 'Bad Gyal'},
-            {name: 'Steve Aoki'},
-            {name: 'David Guetta'}
-          ],
-          price: 20,
-          image: 'https://tomorrowlandlatino.com/wp-content/uploads/2019/12/Tomorrowland-Renueva-Contrato-2034-696x392.jpg.webp',
-          total_available_tickets: 2500
-        }
-      ],
+      events: [],
       events_added: [],
       event_actual: {},
-      total_tickets: 0,
-      avaliable_money: 0,
-      show_cart: false,
+      show_cart: true,
       add_new_event: false,
-      username: '',
-      logged: false,
-      is_admin: false,
-      token: '',
+      modify_new_event: false,
+      add_artist: false,
+      del_artist: false,
+      user: {
+        username: '',
+        total_tickets: 0,
+        available_money: 0,
+        logged: false,
+        is_admin: false,
+        token: ''
+      },
       addEventForm: {
         place: '',
         name: '',
@@ -215,12 +200,12 @@ export default {
   methods: {
     // Actualitza el total de tikets
     updateTotalQuant () {
-      this.total_tickets = 0
+      this.user.total_tickets = 0
       for (let i = 0; i < this.events.length; i++) {
-        this.total_tickets += this.events_added.tickets_bought
+        this.user.total_tickets += this.events_added.tickets_bought
       }
-      return this.total_tickets
     },
+    // Metode que actualitza event_actual per que el carret agafi les dades del event
     updateEventActual (id) {
       for (let i = 0; i < this.events.length; i++) {
         if (this.events[i].id === id) {
@@ -233,8 +218,8 @@ export default {
       this.$router.replace({ path: '/userlogin' })
     },
     logout () {
-      this.$router.replace({ path: '/' })
-      this.logged = false
+      this.user.logged = false
+      this.$router.replace({ path: '/', query: { logged: this.user.logged } })
     },
     // Retorna l'event amb l'id passat com a paramentre
     getEvent (id) {
@@ -249,6 +234,15 @@ export default {
     },
     showAddEvent () {
       this.add_new_event = this.add_new_event === false
+    },
+    showModifyEvent () {
+      this.modify_new_event = this.modify_new_event === false
+    },
+    showAddArtist () {
+      this.add_artist = this.add_artist === false
+    },
+    showDelArtist () {
+      this.del_artist = this.del_artist === false
     },
     // Decremena el nombre de tickets per l'event. Si aquest resulta 0, elimina l'event de events_added
     incQuant (event) {
@@ -288,7 +282,7 @@ export default {
     finalizePurchase () {
       for (let i = 0; i < this.events_added.length; i++) {
         const parameters = {
-          event_id: this.events_added[i].id,
+          id_event: this.events_added[i].id,
           tickets_bought: this.events_added[i].tickets_bought
         }
         this.addPurchase(parameters)
@@ -299,19 +293,18 @@ export default {
     // POST order
     addPurchase (parameters) {
       const path = 'http://localhost:5000/order/'
-      axios.post(path + parameters.username, parameters, {
-        auth: {username: this.token}
+      axios.post(path + this.user.username, parameters, {
+        auth: {username: this.user.token}
       })
         .then(() => {
-          console.log('Order done')
+          alert('Order done')
         })
         .catch((error) => {
           // eslint-disable-next-line
           console.log(error)
         })
     },
-    onSumit (evt) {
-      evt.preventDefault()
+    onSumit () {
       this.$refs.addEventModal.hide()
       const parameters = {
         place: this.addEventForm.place,
@@ -327,14 +320,35 @@ export default {
     addEvent (parameters) {
       const path = 'http://localhost:5000/event'
       axios.post(path, parameters, {
-        auth: {username: this.token}
+        auth: {username: this.user.token}
       })
         .then(() => {
-          console.log('Event Aded')
+          alert('Event added')
         })
         .catch((error) => {
           // eslint-disable-next-line
+          alert('Problem has occurred')
           console.log(error)
+        })
+    },
+    initForm () {
+      this.addEventForm.place = ''
+      this.addEventForm.name = ''
+      this.addEventForm.city = ''
+      this.addEventForm.date = ''
+      this.addEventForm.price = ''
+      this.addEventForm.total_available_tickets = ''
+    },
+    resetParam () {
+      this.initForm()
+    },
+    deleteEvent () {
+      const path = 'http://localhost:5000/event'
+      axios.post(path, {
+        auth: {username: this.token}
+      })
+        .then(() => {
+          alert('Event deleted')
         })
     },
     // GET events
@@ -347,14 +361,14 @@ export default {
         .catch((error) => {
           console.error(error)
         })
-    },
-    created () {
-      this.events = []
-      this.username = this.$route.query.username
-      this.logged = this.$route.query.logged
-      this.is_admin = this.$route.query.is_admin
-      this.token = this.$route.query.token
     }
+  },
+  created () {
+    this.getEvents()
+    this.user.username = this.$route.query.username
+    this.user.logged = this.$route.query.logged
+    this.user.is_admin = this.$route.query.is_admin
+    this.user.token = this.$route.query.token
   }
 }
 
