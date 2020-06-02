@@ -2,6 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Events from '@/components/Events.vue'
 import Login from '@/components/Login.vue'
+import 'bootstrap'
 
 Vue.use(Router)
 
