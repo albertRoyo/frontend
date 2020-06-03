@@ -130,7 +130,7 @@ export default {
           // eslint-disable-next-line
           console.error(error)
           this.user.username = ''
-          alert('Username ' + parameters.username + ' already exists')
+          alert('Username ' + parameters.username + ' already exists or password too weak()')
         })
     },
     backToEvents () {

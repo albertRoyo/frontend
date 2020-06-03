@@ -335,7 +335,7 @@ export default {
         this.events_added.push(order)
       }
       this.user_money_tickets[0].total_tickets += 1
-      this.money_purchase += event.price * this.events_added[i].tickets_bought
+      this.money_purchase += event.price
     },
     // Decrementa el nombre de tickets per l'event.
     decQuant (event) {
@@ -363,7 +363,7 @@ export default {
     },
     // Per cada ordre, cridem el metode addPurchase
     finalizePurchase () {
-      if (this.user_money_tickets >= this.money_purchase) {
+      if (this.user_money_tickets[0].available_money >= this.money_purchase) {
         for (let i = 0; i < this.events_added.length; i++) {
           const parameters = {
             event_id: this.events_added[i].event_id,
@@ -371,9 +371,10 @@ export default {
           }
           this.addPurchase(parameters)
         }
-        // Buidem llista
         this.events_added = []
         this.user_money_tickets[0].total_tickets = 0
+        this.user_money_tickets[0].available_money -= this.money_purchase
+        this.money_purchase = 0
         alert('Order done')
       } else alert('You have not enough money for this purchase')
     },
