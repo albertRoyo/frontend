@@ -379,7 +379,7 @@ export default {
     },
     // POST order
     addPurchase (parameters) {
-      const path = `http://localhost:5000/orders/${this.user.username}`
+      const path = `https://a10-eventright.herokuapp.com/orders/${this.user.username}`
       axios.post(path, parameters, {
         auth: {username: this.user.token}
       })
@@ -402,7 +402,7 @@ export default {
       this.addEvent(parameters)
     },
     addEvent (parameters) {
-      const path = 'http://localhost:5000/event'
+      const path = 'https://a10-eventright.herokuapp.com/event'
       axios.post(path, parameters, {
         auth: {username: this.user.token}
       })
@@ -445,7 +445,7 @@ export default {
       this.updateEvent(parameters)
     },
     updateEvent (parameters) {
-      const path = `http://localhost:5000/event/${this.editEventForm.id}`
+      const path = `https://a10-eventright.herokuapp.com/event/${this.editEventForm.id}`
       axios.put(path, parameters, {
         auth: {username: this.user.token}
       })
@@ -490,7 +490,7 @@ export default {
       this.addArtistInEvent(parameters)
     },
     addNewArtist (parameters) {
-      const path = `http://localhost:5000/artist`
+      const path = `https://a10-eventright.herokuapp.com/artist`
       axios.post(path, parameters, {
         auth: {username: this.user.token}
       })
@@ -502,7 +502,7 @@ export default {
         })
     },
     addArtistInEvent (parameters) {
-      const path = `http://localhost:5000/event/${this.event_to_modify.id}/artist`
+      const path = `https://a10-eventright.herokuapp.com/event/${this.event_to_modify.id}/artist`
       axios.post(path, parameters, {
         auth: {username: this.user.token}
       })
@@ -538,7 +538,7 @@ export default {
       this.deleteArtistInEvent()
     },
     deleteArtistInEvent () {
-      const path = `http://localhost:5000/event/${this.event_to_modify.id}/artist/${this.deleteArtistForm.id}`
+      const path = `https://a10-eventright.herokuapp.com/event/${this.event_to_modify.id}/artist/${this.deleteArtistForm.id}`
       axios.delete(path, {
         auth: {username: this.user.token}
       })
@@ -565,7 +565,7 @@ export default {
     },
     // GET events
     getEvents () {
-      const path = `http://localhost:5000/events`
+      const path = `https://a10-eventright.herokuapp.com/events`
       axios.get(path)
         .then((res) => {
           this.events = res.data.events
@@ -580,7 +580,7 @@ export default {
       this.deleteEvent()
     },
     deleteEvent () {
-      const path = `http://localhost:5000/event/${this.event_to_modify.id}`
+      const path = `https://a10-eventright.herokuapp.com/event/${this.event_to_modify.id}`
       axios.delete(path, {
         auth: {username: this.user.token}
       })

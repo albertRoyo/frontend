@@ -74,7 +74,7 @@ export default {
         username: this.user.username,
         password: this.user.password
       }
-      const path = 'http://localhost:5000/login'
+      const path = 'https://a10-eventright.herokuapp.com/login'
       axios.post(path, parameters)
         .then((res) => {
           this.user.logged = true
@@ -90,7 +90,7 @@ export default {
         })
     },
     getAccount () {
-      const path = `http://localhost:5000/account/${this.user.username}`
+      const path = `https://a10-eventright.herokuapp.com/account/${this.user.username}`
       axios.get(path, {
         auth: {username: this.user.token}
       })
@@ -119,7 +119,7 @@ export default {
         is_admin: 0,
         available_money: 500
       }
-      const path = 'http://localhost:5000/account/'
+      const path = 'https://a10-eventright.herokuapp.com/account/'
       axios.post(path + parameters.username, parameters)
         .then((res) => {
           alert('Account created!')
