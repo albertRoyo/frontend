@@ -7,7 +7,7 @@
 
 </style>
 <template>
-  <div id="app">
+  <div id="app" style="align-content: center; float: inside">
     <template v-if="!create_account">
       <h1> Sing in</h1>
       <div class="form-label-group">
@@ -35,7 +35,7 @@
         <input type="password" id="inputPasswordCreate"
         placeholder="Password" required v-model="addUserForm.password" style="margin-block-end: 10px;">
       </div>
-      <button class="btn btn-primary" style="margin-block-end: 10px; width: 300px" @click="onSumit">Submit</button>
+      <button class="btn btn-primary" style="margin-block-end: 10px; width: 300px" @click="onSubmit">Submit</button>
       <button class="btn btn-danger" style="margin-block-end: 10px; width: 300px" @click="resetParam">Reset</button>
     </template>
   </div>
@@ -46,12 +46,14 @@ export default {
   data () {
     return {
       create_account: false,
+      account: {},
       user: {
         username: '',
         password: '',
         is_admin: 0,
         token: '',
-        logged: false
+        logged: false,
+        available_money: 0
       },
       addUserForm: {
         username: '',
@@ -79,10 +81,6 @@ export default {
           this.user.token = res.data.token
           this.getAccount()
           alert('Logged in as ' + this.user.username)
-          this.$router.replace({
-            path: '/',
-            query: {username: this.user.username, logged: this.user.logged, is_admin: this.user.is_admin, token: this.user.token}
-          })
         })
         .catch((error) => {
           // eslint-disable-next-line
@@ -92,17 +90,29 @@ export default {
         })
     },
     getAccount () {
-      const path = 'http://localhost:5000/account/'
-      axios.get(path + this.user.username)
+      const path = `http://localhost:5000/account/${this.user.username}`
+      axios.get(path, {
+        auth: {username: this.user.token}
+      })
         .then((res) => {
-          this.user.is_admin = res.data.is_admin
+          this.account = res.data.account
+          this.$router.replace({
+            path: '/',
+            query: {
+              username: this.user.username,
+              logged: this.user.logged,
+              is_admin: this.account.is_admin,
+              money: this.account.available_money,
+              token: this.user.token
+            }
+          })
         })
         .catch((error) => {
           // eslint-disable-next-line
           console.error(error)
         })
     },
-    onSumit () {
+    onSubmit () {
       const parameters = {
         username: this.addUserForm.username,
         password: this.addUserForm.password,
